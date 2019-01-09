@@ -1,7 +1,5 @@
 package br.com.casadocodigo.loja.controllers;
 
-import java.util.concurrent.Callable;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -24,45 +22,43 @@ public class PagamentoController {
 
 	@Autowired
 	private CarrinhoCompras carrinho;
-
+	
 	@Autowired
 	private RestTemplate restTemplate;
-
+	
 	@Autowired
 	private MailSender sender;
-
-	@RequestMapping(value = "/finalizar", method = RequestMethod.POST)
-	public Callable<ModelAndView> finalizar(@AuthenticationPrincipal Usuario usuario, RedirectAttributes model) {
-		return () -> {
-			String uri = "http://book-payment.herokuapp.com/payment";
-
-			try {
-				String response = restTemplate.postForObject(uri, new DadosPagamento(carrinho.getTotal()),
-						String.class);
-				System.out.println(response);
-
-				enviaEmailCompraProduto(usuario);
-
-				model.addFlashAttribute("sucesso", response);
-				return new ModelAndView("redirect:/produtos");
-			} catch (HttpClientErrorException e) {
-				e.printStackTrace();
-				model.addFlashAttribute("falha", "Valor maior que o permitido");
-				return new ModelAndView("redirect:/produtos");
-			}
-		};
+	
+	@RequestMapping(value="/finalizar", method=RequestMethod.POST)
+	public ModelAndView finalizar(@AuthenticationPrincipal Usuario usuario, RedirectAttributes model){
+		String uri = "http://book-payment.herokuapp.com/payment";
+		
+		try {
+			String response = restTemplate.postForObject(uri, new DadosPagamento(carrinho.getTotal()), String.class);
+			model.addFlashAttribute("message", response);
+			System.out.println(response);
+			
+			//método para tirar todos os livros do carrinho
+			this.carrinho.limpa();
+			
+			enviaEmailCompraProduto(usuario);
+			
+			return new ModelAndView("redirect:/");
+		} catch (HttpClientErrorException e) {
+			e.printStackTrace();
+			model.addFlashAttribute("message", "Valor maior que o permitido! Compra negada!");
+			return new ModelAndView("redirect:/");
+		}
 	}
 
 	private void enviaEmailCompraProduto(Usuario usuario) {
 		SimpleMailMessage email = new SimpleMailMessage();
-
-		email.setSubject("Compra finalizada com sucesso");
-		//email.setTo(usuario.getEmail());
-		email.setTo("gustavobhm@bol.com.br");
+		email.setSubject("Compra finalizado com sucesso");
+		email.setTo(usuario.getEmail());
 		email.setText("Compra aprovada com sucesso no valor de " + carrinho.getTotal());
 		email.setFrom("compras@casadocodigo.com.br");
-
-		sender.send(email);
+		
+		System.out.println("Envio de email foi desabilitado.");
+		//sender.send(email);
 	}
-
 }

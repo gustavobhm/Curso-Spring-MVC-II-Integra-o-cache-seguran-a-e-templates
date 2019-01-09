@@ -37,13 +37,13 @@
 	      </ul>
 	      <ul class="nav navbar-nav navbar-right">
 	      	 <li class="nav-item">
-	      	 	<a href="#">
-	      	 		<security:authentication property="principal" var="usuario" />
-	      	 		Usuário: ${usuario.username }
-	      	 	</a>
+	      	 	<a href="<c:url value="/logout" />">Sair</a></span>
 	      	 </li>
 	      	 <li class="nav-item">
-	      	 	<a href="<c:url value="/logout" />">Sair</a></span>
+	      	 	<a href="#">
+	      	 		<security:authentication property="principal" var="usuario" />
+	      	 		${usuario.username }
+	      	 	</a>
 	      	 </li>
 	      </ul>
 	    </div><!-- /.navbar-collapse -->
@@ -59,7 +59,7 @@
 			<tr>
 				<th>Título</th>
 				<th>Descrição</th>
-				<th>Preços</th>
+				<th>Preços</th> 
 				<th>Páginas</th>
 			</tr>
 			<c:forEach items="${produtos }" var="produto">
